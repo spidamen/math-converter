@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LaTeX → OneNote Converter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+
+<style>
+:root {
+  --bg: #ffffff;
+  --text: #000000;
+  --box: #f2f2f2;
+  --btn: #e0e0e0;
+}
+
+body.dark {
+  --bg: #121212;
+  --text: #eaeaea;
+  --box: #1e1e1e;
+  --btn: #2a2a2a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system;
+  margin: 0;
+  padding: 12px;
+}
+
+h2 {
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--box);
+  color: var(--text);
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  border-radius: 8px;
+  resize: vertical;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+  margin: 10px 0;
+}
+
+button {
+  background: var(--btn);
+  color: var(--text);
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.history-item {
+  background: var(--box);
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.history-item span {
+  flex: 1;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.history-item button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>LaTeX → OneNote Converter</h2>
+
+<textarea id="input" placeholder="Paste math here..."></textarea>
+
+<div class="toolbar">
+  <button onclick="pasteFromClipboard()">📋 Paste</button>
+  <button onclick="convert()">🔄 Convert</button>
+  <button onclick="copyOutput()">✅ Copy</button>
+  <button onclick="saveHistory()">💾 Save</button>
+  <button onclick="toggleDarkMode()">🌙 Theme</button>
+</div>
+
+<textarea id="output" placeholder="Converted output..."></textarea>
+
+<h3>History</h3>
+<div id="history"></div>
+
+<script>
+// ----------------------
+// PWA SERVICE WORKER
+// ----------------------
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+
+// ----------------------
+// CONVERTER
+// ----------------------
+function convert() {
+  let text = document.getElementById("input").value;
+
+  const replacements = {
+    "\\cdot": "⋅", "\\times": "×", "\\div": "÷",
+    "\\pm": "±", "\\approx": "≈",
+    "\\neq": "≠", "\\leq": "≤", "\\geq": "≥",
+    "\\to": "→", "\\infty": "∞",
+    "\\,": " ", "\\;": " "
+  };
+
+  for (const k in replacements) {
+    text = text.replaceAll(k, replacements[k]);
+  }
+
+  text = text.replace(/\\text\{([^}]*)\}/g, "$1");
+  text = text.replace(/{,}/g, ",");
+  text = text.replace(/\^\{([^}]+)\}/g, "^($1)");
+  text = text.replace(/_\{([^}]+)\}/g, "_($1)");
+  text = text.replace(/\\sqrt\{([^}]*)\}/g, "√($1)");
+
+  const fracRegex = /\\frac\s*{([^{}]+)}\s*{([^{}]+)}/g;
+  while (fracRegex.test(text)) {
+    text = text.replace(fracRegex, "($1)/($2)");
+  }
+
+  text = text.replace(/\\left|\\right/g, "");
+  text = text.replace(/[{}]/g, "");
+  text = text.replace(/\\/g, "");
+  text = text.replace(/\s+/g, " ").trim();
+
+  document.getElementById("output").value = text;
+}
+
+// ----------------------
+// CLIPBOARD
+// ----------------------
+async function pasteFromClipboard() {
+  const text = await navigator.clipboard.readText();
+  document.getElementById("input").value = text;
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(
+    document.getElementById("output").value
+  );
+}
+
+// ----------------------
+// HISTORY WITH DELETE
+// ----------------------
+function saveHistory() {
+  const input = inputEl().value;
+  const output = outputEl().value;
+  if (!input || !output) return;
+
+  const history = getHistory();
+  history.unshift({ input, output });
+  localStorage.setItem("history", JSON.stringify(history.slice(0, 30)));
+  renderHistory();
+}
+
+function deleteHistory(index) {
+  const history = getHistory();
+  history.splice(index, 1);
+  localStorage.setItem("history", JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  const div = document.getElementById("history");
+  div.innerHTML = "";
+  const history = getHistory();
+
+  history.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "history-item";
+
+    const span = document.createElement("span");
+    span.textContent = item.output;
+    span.onclick = () => {
+      inputEl().value = item.input;
+      outputEl().value = item.output;
+    };
+
+    const del = document.createElement("button");
+    del.textContent = "🗑";
+    del.onclick = () => deleteHistory(index);
+
+    row.appendChild(span);
+    row.appendChild(del);
+    div.appendChild(row);
+  });
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem("history") || "[]");
+}
+
+function inputEl() { return document.getElementById("input"); }
+function outputEl() { return document.getElementById("output"); }
+
+// ----------------------
+// DARK MODE
+// ----------------------
+function toggleDarkMode() {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("dark", document.body.classList.contains("dark"));
+}
+
+if (localStorage.getItem("dark") === "true") {
+  document.body.classList.add("dark");
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>

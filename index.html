@@ -434,24 +434,45 @@
           "\\omega": "ω",
           "\\,": " ",
           "\\;": " ",
+          "\\boxed": " ",
         };
 
+        // Replace symbols first
         for (const [k, v] of Object.entries(symbols)) {
           content = content.replaceAll(k, v);
         }
 
+        // Cleanup commas
         content = content.replace(/{,}/g, ",");
-        content = content.replace(/\^\{([^}]+)\}/g, "^($1)");
-        content = content.replace(/\^([+-])/g, "^($1)");
-        content = content.replace(/_\{([^}]+)\}/g, "_($1)");
-        content = content.replace(/_([0-9]+)/g, "_($1)");
+
+        // ---------- FIXED MATH HANDLING ----------
+
+        // Superscripts: ^2, ^{2}, ^+, ^-
+        content = content.replace(/\^\{?([0-9+-]+)\}?/g, "^$1");
+
+        // Subscripts: _2, _{2}, _{23}
+        // IMPORTANT: NO parentheses → prevents nesting bugs
+        content = content.replace(/(_[0-9]+)([A-Za-z])/g, "$1 $2");
+
+        // Square roots
         content = content.replace(/\\sqrt\{([^}]*)\}/g, "√($1)");
+
+        // Fractions
         content = content.replace(
           /\\frac\s*{([^{}]+)}\s*{([^{}]+)}/g,
           "($1)/($2)"
         );
+
+        // Integrals and sums
         content = content.replace(/\\int/g, "∫");
         content = content.replace(/\\sum/g, "∑");
+
+        // Force unit fractions (m/s, kg/s, etc.) to stay together
+        // Only wrap if it's NOT already inside parentheses
+        content = content.replace(
+          /(?<!\()\b([a-zA-Z]+)\/([a-zA-Z]+)\b(?!\))/g,
+          "($1/$2)"
+        );
 
         return content;
       }
@@ -590,12 +611,6 @@
       renderHistory();
 
       let timer;
-      document.getElementById("input").addEventListener("input", () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-          convert(); // preview only
-        }, 300);
-      });
 
       // Check if user clicked Clear before reload
       if (localStorage.getItem("wasCleared") === "true") {

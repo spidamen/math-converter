@@ -1,471 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>LaTeX Converter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg: #ffffff;
-      --bg-secondary: #fafafa;
-      --border: #e5e5e5;
-      --text: #171717;
-      --text-secondary: #737373;
-      --text-tertiary: #a3a3a3;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-    }
-
-    body.dark {
-      --bg: #0a0a0a;
-      --bg-secondary: #171717;
-      --border: #262626;
-      --text: #fafafa;
-      --text-secondary: #a3a3a3;
-      --text-tertiary: #737373;
-      --accent: #3b82f6;
-      --accent-hover: #60a5fa;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 15px;
-      line-height: 1.6;
-      min-height: 100vh;
-      transition: all 0.3s;
-    }
-
-    .container {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 40px 24px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-
-    h1 {
-      font-size: 32px;
-      font-weight: 600;
-      letter-spacing: -0.03em;
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      color: var(--text-secondary);
-    }
-
-    .card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 24px;
-      overflow: hidden;
-      transition: border-color 0.2s;
-    }
-
-    .card:focus-within {
-      border-color: var(--accent);
-    }
-
-    .label {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 160px;
-      padding: 20px;
-      background: transparent;
-      color: var(--text);
-      border: none;
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 14px;
-      line-height: 1.7;
-      resize: vertical;
-      outline: none;
-    }
-
-    textarea::placeholder {
-      color: var(--text-tertiary);
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      padding: 16px 20px;
-      border-top: 1px solid var(--border);
-      overflow-x: auto;
-    }
-
-    .btn {
-      padding: 10px 16px;
-      background: var(--bg-secondary);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .btn:hover {
-      border-color: var(--text-tertiary);
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-
-    .btn-primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-    }
-
-    .output-wrap {
-      position: relative;
-    }
-
-    .copy-notice {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: var(--text);
-      color: var(--bg);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: all 0.3s;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .copy-notice.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .history {
-      margin-top: 48px;
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .history-header h3 {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .history-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .history-item:hover {
-      border-color: var(--accent);
-      transform: translateY(-1px);
-    }
-
-    .history-content {
-      flex: 1;
-      font-family: 'SF Mono', Monaco, monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      word-break: break-word;
-      max-width: calc(100% - 40px);
-    }
-
-    .history-btn {
-      background: none;
-      border: none;
-      color: var(--text-tertiary);
-      cursor: pointer;
-      padding: 6px;
-      border-radius: 6px;
-      transition: all 0.2s;
-    }
-
-    .history-btn:hover {
-      color: var(--text);
-      background: var(--bg-secondary);
-    }
-
-    .empty {
-      text-align: center;
-      padding: 48px 20px;
-      color: var(--text-tertiary);
-    }
-
-    footer {
-      margin-top: 64px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      color: var(--text-tertiary);
-      font-size: 13px;
-    }
-
-    .theme-toggle {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      z-index: 100;
-    }
-
-    .theme-toggle:hover {
-      border-color: var(--text-tertiary);
-      transform: scale(1.05);
-    }
-
-    @media (max-width: 640px) {
-      .container { padding: 24px 16px; }
-      h1 { font-size: 24px; }
-      textarea { min-height: 140px; padding: 16px; }
-      .toolbar { padding: 12px 16px; }
-      .btn { padding: 8px 12px; font-size: 13px; }
-      .history-item { flex-direction: column; gap: 12px; }
-      .history-content { max-width: 100%; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header>
-      <h1>LaTeX Converter</h1>
-      <div class="subtitle">Convert LaTeX equations for OneNote</div>
-    </header>
-
-    <main>
-      <div class="card">
-        <div class="label">Input</div>
-        <textarea id="input" placeholder="Paste LaTeX here..."></textarea>
-        <div class="toolbar">
-          <button class="btn" onclick="pasteFromClipboard()">Paste</button>
-          <button class="btn btn-primary" onclick="convert()">Convert</button>
-          <button class="btn" onclick="copyOutput()">Copy</button>
-          <button class="btn" onclick="clearAll()">Clear</button>
-        </div>
-      </div>
-
-      <div class="card output-wrap">
-        <div class="label">Output</div>
-        <textarea id="output" placeholder="Output will appear here..." readonly></textarea>
-        <div class="copy-notice" id="notice">Copied!</div>
-      </div>
-
-      <div class="history">
-        <div class="history-header">
-          <h3>History</h3>
-          <button class="btn" onclick="clearHistory()" style="font-size: 12px; padding: 8px 12px;">Clear All</button>
-        </div>
-        <div id="history"></div>
-      </div>
-    </main>
-
-    <footer>Designed for iOS ChatGPT output → OneNote</footer>
-  </div>
-
-  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
-
-  <script>
-    function processContent(content) {
-      const symbols = {
-        "\\rightleftharpoons": "⇌", "\\leftrightarrow": "⇄", "\\rightarrow": "→",
-        "\\leftarrow": "←", "\\Rightarrow": "⇒", "\\Leftarrow": "⇐",
-        "\\cdot": "·", "\\times": "×", "\\div": "÷", "\\pm": "±",
-        "\\approx": "≈", "\\neq": "≠", "\\leq": "≤", "\\geq": "≥",
-        "\\to": "→", "\\infty": "∞", "\\circ": "°", "\\partial": "∂",
-        "\\nabla": "∇", "\\in": "∈", "\\alpha": "α", "\\beta": "β",
-        "\\gamma": "γ", "\\delta": "δ", "\\Delta": "Δ", "\\epsilon": "ε",
-        "\\theta": "θ", "\\lambda": "λ", "\\mu": "μ", "\\pi": "π",
-        "\\sigma": "σ", "\\Sigma": "Σ", "\\phi": "φ", "\\omega": "ω",
-        "\\,": " ", "\\;": " "
-      };
-
-      for (const [k, v] of Object.entries(symbols)) {
-        content = content.replaceAll(k, v);
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>LaTeX Converter</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --bg-secondary: #fafafa;
+        --border: #e5e5e5;
+        --text: #171717;
+        --text-secondary: #737373;
+        --text-tertiary: #a3a3a3;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
       }
 
-      content = content.replace(/{,}/g, ",");
-      content = content.replace(/\^\{([^}]+)\}/g, "^($1)");
-      content = content.replace(/\^([+-])/g, "^($1)");
-      content = content.replace(/_\{([^}]+)\}/g, "_($1)");
-      content = content.replace(/_([0-9]+)/g, "_($1)");
-      content = content.replace(/\\sqrt\{([^}]*)\}/g, "√($1)");
-      content = content.replace(/\\frac\s*{([^{}]+)}\s*{([^{}]+)}/g, "($1)/($2)");
-      content = content.replace(/\\int/g, "∫");
-      content = content.replace(/\\sum/g, "∑");
+      body.dark {
+        --bg: #0a0a0a;
+        --bg-secondary: #171717;
+        --border: #262626;
+        --text: #fafafa;
+        --text-secondary: #a3a3a3;
+        --text-tertiary: #737373;
+        --accent: #3b82f6;
+        --accent-hover: #60a5fa;
+      }
 
-      return content;
-    }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    function convert() {
-      let text = document.getElementById("input").value;
-      if (!text.trim()) return;
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        min-height: 100vh;
+        transition: all 0.3s;
+      }
 
-      text = text.replace(/\\text\{([^}]*)\}/g, (m, c) => processContent(c));
-      text = text.replace(/\\mathrm\{([^}]*)\}/g, (m, c) => processContent(c));
-      text = processContent(text);
-      text = text.replace(/[{}\\]/g, "").replace(/[ \t]+/g, " ").trim();
+      .container {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
 
-      document.getElementById("output").value = text;
-      if (text) saveHistory();
-    }
+      header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
 
-    async function pasteFromClipboard() {
-      try {
-        const text = await navigator.clipboard.readText();
-        document.getElementById("input").value = text;
+      h1 {
+        font-size: 32px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        color: var(--text-secondary);
+      }
+
+      .card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+
+      .card:focus-within {
+        border-color: var(--accent);
+      }
+
+      .label {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 160px;
+        padding: 20px;
+        background: transparent;
+        color: var(--text);
+        border: none;
+        font-family: "SF Mono", Monaco, monospace;
+        font-size: 14px;
+        line-height: 1.7;
+        resize: vertical;
+        outline: none;
+      }
+
+      textarea::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+        overflow-x: auto;
+      }
+
+      .btn {
+        padding: 10px 16px;
+        background: var(--bg-secondary);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .btn:hover {
+        border-color: var(--text-tertiary);
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+        border-color: var(--accent);
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+      }
+
+      .output-wrap {
+        position: relative;
+      }
+
+      .copy-notice {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--text);
+        color: var(--bg);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s;
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .copy-notice.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .history {
+        margin-top: 48px;
+      }
+
+      .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .history-header h3 {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .history-item {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .history-item:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+
+      .history-content {
+        flex: 1;
+        font-family: "SF Mono", Monaco, monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        word-break: break-word;
+        max-width: calc(100% - 40px);
+      }
+
+      .history-btn {
+        background: none;
+        border: none;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 6px;
+        transition: all 0.2s;
+      }
+
+      .history-btn:hover {
+        color: var(--text);
+        background: var(--bg-secondary);
+      }
+
+      .empty {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--text-tertiary);
+      }
+
+      footer {
+        margin-top: 64px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        color: var(--text-tertiary);
+        font-size: 13px;
+      }
+
+      .theme-toggle {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 100;
+      }
+
+      .theme-toggle:hover {
+        border-color: var(--text-tertiary);
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 24px 16px;
+        }
+        h1 {
+          font-size: 24px;
+        }
+        textarea {
+          min-height: 140px;
+          padding: 16px;
+        }
+        .toolbar {
+          padding: 12px 16px;
+        }
+        .btn {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+        .history-item {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .history-content {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>LaTeX Converter</h1>
+        <div class="subtitle">Convert LaTeX equations for OneNote</div>
+      </header>
+
+      <main>
+        <div class="card">
+          <div class="label">Input</div>
+          <textarea
+            id="input"
+            placeholder="Paste LaTeX here..."
+            autocomplete="off"
+          ></textarea>
+          <div class="toolbar">
+            <button class="btn" onclick="pasteFromClipboard()">Paste</button>
+            <button class="btn btn-primary" onclick="manualConvert()">
+              Convert
+            </button>
+            <button class="btn" onclick="copyOutput()">Copy</button>
+            <button class="btn" onclick="clearAll()">Clear</button>
+          </div>
+        </div>
+
+        <div class="card output-wrap">
+          <div class="label">Output</div>
+          <textarea
+            id="output"
+            placeholder="Output will appear here..."
+            readonly
+            autocomplete="off"
+          ></textarea>
+          <div class="copy-notice" id="notice">Copied!</div>
+        </div>
+
+        <div class="history">
+          <div class="history-header">
+            <h3>History</h3>
+            <button
+              class="btn"
+              onclick="clearHistory()"
+              style="font-size: 12px; padding: 8px 12px"
+            >
+              Clear All
+            </button>
+          </div>
+          <div id="history"></div>
+        </div>
+      </main>
+
+      <footer>Designed for iOS ChatGPT output → OneNote</footer>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+      🌙
+    </button>
+
+    <script>
+      function processContent(content) {
+        const symbols = {
+          "\\rightleftharpoons": "⇌",
+          "\\leftrightarrow": "⇄",
+          "\\rightarrow": "→",
+          "\\leftarrow": "←",
+          "\\Rightarrow": "⇒",
+          "\\Leftarrow": "⇐",
+          "\\cdot": "·",
+          "\\times": "×",
+          "\\div": "÷",
+          "\\pm": "±",
+          "\\approx": "≈",
+          "\\neq": "≠",
+          "\\leq": "≤",
+          "\\geq": "≥",
+          "\\to": "→",
+          "\\infty": "∞",
+          "\\circ": "°",
+          "\\partial": "∂",
+          "\\nabla": "∇",
+          "\\in": "∈",
+          "\\alpha": "α",
+          "\\beta": "β",
+          "\\gamma": "γ",
+          "\\delta": "δ",
+          "\\Delta": "Δ",
+          "\\epsilon": "ε",
+          "\\theta": "θ",
+          "\\lambda": "λ",
+          "\\mu": "μ",
+          "\\pi": "π",
+          "\\sigma": "σ",
+          "\\Sigma": "Σ",
+          "\\phi": "φ",
+          "\\omega": "ω",
+          "\\,": " ",
+          "\\;": " ",
+        };
+
+        for (const [k, v] of Object.entries(symbols)) {
+          content = content.replaceAll(k, v);
+        }
+
+        content = content.replace(/{,}/g, ",");
+        content = content.replace(/\^\{([^}]+)\}/g, "^($1)");
+        content = content.replace(/\^([+-])/g, "^($1)");
+        content = content.replace(/_\{([^}]+)\}/g, "_($1)");
+        content = content.replace(/_([0-9]+)/g, "_($1)");
+        content = content.replace(/\\sqrt\{([^}]*)\}/g, "√($1)");
+        content = content.replace(
+          /\\frac\s*{([^{}]+)}\s*{([^{}]+)}/g,
+          "($1)/($2)"
+        );
+        content = content.replace(/\\int/g, "∫");
+        content = content.replace(/\\sum/g, "∑");
+
+        return content;
+      }
+
+      function convert() {
+        let text = document.getElementById("input").value;
+        if (!text.trim()) return;
+
+        text = text.replace(/\\text\{([^}]*)\}/g, (m, c) => processContent(c));
+        text = text.replace(/\\mathrm\{([^}]*)\}/g, (m, c) =>
+          processContent(c)
+        );
+        text = processContent(text);
+        text = text
+          .replace(/[{}\\]/g, "")
+          .replace(/[ \t]+/g, " ")
+          .trim();
+
+        document.getElementById("output").value = text;
+
+        // Save current state
+        localStorage.setItem(
+          "lastInput",
+          document.getElementById("input").value
+        );
+        localStorage.setItem("lastOutput", text);
+      }
+
+      async function pasteFromClipboard() {
+        try {
+          const text = await navigator.clipboard.readText();
+          document.getElementById("input").value = text;
+          convert();
+          saveHistory();
+        } catch {
+          alert("Could not access clipboard");
+        }
+      }
+
+      async function copyOutput() {
+        const text = document.getElementById("output").value;
+        if (!text.trim()) return;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          const notice = document.getElementById("notice");
+          notice.classList.add("show");
+          setTimeout(() => notice.classList.remove("show"), 1500);
+        } catch {
+          alert("Could not copy");
+        }
+      }
+
+      function clearAll() {
+        document.getElementById("input").value = "";
+        document.getElementById("output").value = "";
+        localStorage.removeItem("lastInput");
+        localStorage.removeItem("lastOutput");
+
+        // Force clear by setting a flag
+        localStorage.setItem("wasCleared", "true");
+      }
+
+      function saveHistory() {
+        const input = document.getElementById("input").value.trim();
+        const output = document.getElementById("output").value.trim();
+        if (!input || !output) return;
+
+        let history = JSON.parse(localStorage.getItem("history") || "[]");
+        if (history.some((i) => i.input === input && i.output === output))
+          return;
+
+        history.unshift({ input, output });
+        localStorage.setItem("history", JSON.stringify(history.slice(0, 15)));
+        renderHistory();
+      }
+
+      function manualConvert() {
         convert();
-      } catch {
-        alert("Could not access clipboard");
+        saveHistory();
       }
-    }
 
-    async function copyOutput() {
-      const text = document.getElementById("output").value;
-      if (!text.trim()) return;
-      
-      try {
-        await navigator.clipboard.writeText(text);
-        const notice = document.getElementById("notice");
-        notice.classList.add("show");
-        setTimeout(() => notice.classList.remove("show"), 1500);
-      } catch {
-        alert("Could not copy");
-      }
-    }
+      function renderHistory() {
+        const container = document.getElementById("history");
+        const history = JSON.parse(localStorage.getItem("history") || "[]");
 
-    function clearAll() {
-      document.getElementById("input").value = "";
-      document.getElementById("output").value = "";
-    }
+        if (history.length === 0) {
+          container.innerHTML = '<div class="empty">No history yet</div>';
+          return;
+        }
 
-    function saveHistory() {
-      const input = document.getElementById("input").value.trim();
-      const output = document.getElementById("output").value.trim();
-      if (!input || !output) return;
-
-      let history = JSON.parse(localStorage.getItem("history") || "[]");
-      if (history.some(i => i.input === input && i.output === output)) return;
-      
-      history.unshift({ input, output });
-      localStorage.setItem("history", JSON.stringify(history.slice(0, 15)));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      const container = document.getElementById("history");
-      const history = JSON.parse(localStorage.getItem("history") || "[]");
-      
-      if (history.length === 0) {
-        container.innerHTML = '<div class="empty">No history yet</div>';
-        return;
-      }
-      
-      container.innerHTML = history.map((item, i) => `
+        container.innerHTML = history
+          .map(
+            (item, i) => `
         <div class="history-item" onclick="loadHistory(${i})">
           <div class="history-content">${item.output}</div>
           <button class="history-btn" onclick="event.stopPropagation(); deleteHistory(${i})">✕</button>
         </div>
-      `).join('');
-    }
+      `
+          )
+          .join("");
+      }
 
-    function loadHistory(i) {
-      const history = JSON.parse(localStorage.getItem("history") || "[]");
-      document.getElementById("input").value = history[i].input;
-      document.getElementById("output").value = history[i].output;
-    }
+      function loadHistory(i) {
+        const history = JSON.parse(localStorage.getItem("history") || "[]");
+        document.getElementById("input").value = history[i].input;
+        document.getElementById("output").value = history[i].output;
+      }
 
-    function deleteHistory(i) {
-      let history = JSON.parse(localStorage.getItem("history") || "[]");
-      history.splice(i, 1);
-      localStorage.setItem("history", JSON.stringify(history));
-      renderHistory();
-    }
-
-    function clearHistory() {
-      if (confirm("Clear all history?")) {
-        localStorage.removeItem("history");
+      function deleteHistory(i) {
+        let history = JSON.parse(localStorage.getItem("history") || "[]");
+        history.splice(i, 1);
+        localStorage.setItem("history", JSON.stringify(history));
         renderHistory();
       }
-    }
 
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle("dark");
-      localStorage.setItem("dark", isDark);
-      document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
-    }
+      function clearHistory() {
+        if (confirm("Clear all history?")) {
+          localStorage.removeItem("history");
+          renderHistory();
+        }
+      }
 
-    // Init
-    if (localStorage.getItem("dark") === "true") {
-      document.body.classList.add("dark");
-      document.getElementById("themeBtn").textContent = "☀️";
-    }
-    
-    renderHistory();
-    
-    let timer;
-    document.getElementById("input").addEventListener('input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(convert, 300);
-    });
+      function toggleTheme() {
+        const isDark = document.body.classList.toggle("dark");
+        localStorage.setItem("dark", isDark);
+        document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
+      }
 
-    // Load example
-    if (!JSON.parse(localStorage.getItem("history") || "[]").length) {
-      document.getElementById("input").value = '\\text{(1) } \\mathrm{CO_2(g) \\rightleftharpoons CO_2(aq)}';
-      setTimeout(convert, 100);
-    }
-  </script>
-</body>
+      // Init
+      if (localStorage.getItem("dark") === "true") {
+        document.body.classList.add("dark");
+        document.getElementById("themeBtn").textContent = "☀️";
+      }
+
+      renderHistory();
+
+      let timer;
+      document.getElementById("input").addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          convert();
+          if (document.getElementById("output").value.trim()) {
+            saveHistory();
+          }
+        }, 300);
+      });
+
+      // Check if user clicked Clear before reload
+      if (localStorage.getItem("wasCleared") === "true") {
+        localStorage.removeItem("wasCleared");
+        document.getElementById("input").value = "";
+        document.getElementById("output").value = "";
+      } else {
+        // Restore last session or load example
+        const lastInput = localStorage.getItem("lastInput");
+        const lastOutput = localStorage.getItem("lastOutput");
+        const hasHistory =
+          JSON.parse(localStorage.getItem("history") || "[]").length > 0;
+
+        if (lastInput && lastOutput) {
+          // Restore last session
+          document.getElementById("input").value = lastInput;
+          document.getElementById("output").value = lastOutput;
+        } else if (!hasHistory) {
+          // Load example only if no history and no last session
+          document.getElementById("input").value =
+            "\\text{(1) } \\mathrm{CO_2(g) \\rightleftharpoons CO_2(aq)}";
+          setTimeout(() => {
+            convert();
+          }, 100);
+        }
+      }
+    </script>
+  </body>
 </html>

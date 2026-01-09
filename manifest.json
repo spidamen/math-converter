@@ -1,8 +1,8 @@
 {
   "name": "LaTeX Converter",
-  "short_name": "LaTeX",
+  "short_name": "LaCon",
   "description": "Convert LaTeX equations for OneNote",
-  "start_url": "/index.html",
+  "start_url": "./",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

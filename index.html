@@ -9,7 +9,17 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <title>LaTeX Converter</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="LaTeX" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.json" />
     <style>
       :root {
         --bg: #ffffff;
@@ -596,14 +606,15 @@
           // Restore last session
           document.getElementById("input").value = lastInput;
           document.getElementById("output").value = lastOutput;
-        } else if (!hasHistory) {
-          // Load example only if no history and no last session
-          document.getElementById("input").value =
-            "\\text{(1) } \\mathrm{CO_2(g) \\rightleftharpoons CO_2(aq)}";
-          setTimeout(() => {
-            convert();
-          }, 100);
         }
+        // } else if (!hasHistory) {
+        //   // Load example only if no history and no last session
+        //   document.getElementById("input").value =
+        //     "\\text{(1) } \\mathrm{CO_2(g) \\rightleftharpoons CO_2(aq)}";
+        //   setTimeout(() => {
+        //     convert();
+        //   }, 100);
+        // }
       }
     </script>
   </body>

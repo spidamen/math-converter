@@ -20,6 +20,14 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="manifest.json" />
+
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="LaTeX" />
     <style>
       :root {
         --bg: #ffffff;
@@ -583,10 +591,7 @@
       document.getElementById("input").addEventListener("input", () => {
         clearTimeout(timer);
         timer = setTimeout(() => {
-          convert();
-          if (document.getElementById("output").value.trim()) {
-            saveHistory();
-          }
+          convert(); // preview only
         }, 300);
       });
 

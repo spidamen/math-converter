@@ -1,10 +1,10 @@
 {
-  "name": "Math Converter",
-  "short_name": "Converter",
+  "name": "LaTeX Converter",
+  "short_name": "LaTeX",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
   "icons": [
     {
       "src": "icon.png",

@@ -361,6 +361,21 @@
     </button>
 
     <script>
+      // Force service worker update
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").then((reg) => {
+          // Check for updates every time the page loads
+          reg.update();
+        });
+
+        // Listen for controller change and reload
+        let refreshing;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      }
       function processContent(content) {
         const symbols = {
           "\\rightleftharpoons": "⇌",
